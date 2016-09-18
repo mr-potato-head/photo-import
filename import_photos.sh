@@ -3,7 +3,16 @@
 #$1 dossier d'entrée
 #$2 dossier de sortie
 
-for photo in `ls *.{jpeg,jpg,nef} 2> /dev/null`
+initial_dir=`pwd`
+
+input_dir="$(cd "$1"; pwd)"
+echo "Input directory: $input_dir"
+cd "$initial_dir"
+output_dir="$(cd "$2"; pwd)"
+echo "Output directory: $output_dir"
+cd "$initial_dir"
+
+for photo in `ls $input_dir/*.{jpeg,jpg,nef} 2> /dev/null`
 do
 	date=`exiftool -T -createdate -d "%Y:%m:%d" $photo`
 	IFS=':' read -r -a array <<< "$date"
@@ -11,34 +20,21 @@ do
         month="${array[1]}"
         day="${array[2]}"
 
-	if [ -e $year ] && [ -d $year ]
+	filename=`basename $photo`
+	echo "$filename"
+
+	if [ $date = "-" ]
 	then
-		#L'année existe déja, on ne la recrée pas
-		echo 'Année existe, on vérifie le mois'
+		#echo "Try to create folder : $output_dir/undated"
+		mkdir -p -v "$output_dir/undated"
 		
-		if [ -e $month ] && [ -d $month ]
-		then
-			#Le mois existe, on ne le recrée pas
-			echo 'Mois existe, on vérifie le jour'
-			
-			if [ -e $day ] && [ -d $day ]
-			then
-				#Le jour existe, on ne le recrée pas
-				echo 'Jour existe, on tente la copie'
-
-			else
-				# Le jour n'existe pas, on crée le jour
-				echo "Création de : $2/$year/$month/$day"
-
-			fi
-	
-		else
-			# Le mois n'existe pas, on crée mois et jour
-			echo "Création de : $2/$year/$month/$day"
-
-		fi
+		#echo "Try to copy : $photo in $output_dir/undated"
+		cp -i -v "$photo" "$output_dir/undated/$filename"
 	else
-		#L'année n'existe pas, on crée toute l'arbo
-		echo "Création de : $2/$year/$month/$day"
+		#echo "Try to create folder : $output_dir/$year/$month/$day"
+		mkdir -p -v "$output_dir/$year/$month/$day"
+
+		#echo "Try to copy : $photo in $output_dir/$year/$month/$day"
+		cp -i -v "$photo" "$output_dir/$year/$month/$day/$filename"
 	fi
 done
