@@ -12,7 +12,10 @@ output_dir="$(cd "$2"; pwd)"
 echo "Output directory: $output_dir"
 cd "$initial_dir"
 
-for photo in `ls $input_dir/*.{jpeg,jpg,nef} 2> /dev/null`
+OIFS="$IFS"
+IFS=$'\n'
+
+for photo in `ls -1 "$input_dir"/*.{jpeg,JPEG,jpg,JPG,nef,NEF} 2> /dev/null`
 do
 	date=`exiftool -T -createdate -d "%Y:%m:%d" $photo`
 	IFS=':' read -r -a array <<< "$date"
@@ -38,3 +41,4 @@ do
 		cp -i -v "$photo" "$output_dir/$year/$month/$day/$filename"
 	fi
 done
+IFS="$OIFS"
